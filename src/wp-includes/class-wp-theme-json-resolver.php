@@ -346,8 +346,15 @@ class WP_Theme_JSON_Resolver {
 		 * When the theme.json merge algorithm properly supports child themes,
 		 * this should also fall back to the template path, as locate_template did.
 		 */
-		$located   = '';
-		$candidate = get_stylesheet_directory() . '/' . $file_name;
+		$located = '';
+		/**
+		 * Filters the folder for the theme.json config file for FSE.
+		 *
+		 * @since 5.8.0
+		 *
+		 * @param string $folder in the theme that contains the theme.json.
+		 */
+		$candidate = get_stylesheet_directory() . '/' . apply_filters( 'wp_theme_json_file_folder', $file_name );
 		if ( is_readable( $candidate ) ) {
 			$located = $candidate;
 		}
