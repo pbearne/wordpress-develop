@@ -77,6 +77,7 @@ class Tests_Admin_includesListTable extends WP_UnitTestCase {
 	 * @ticket 15459
 	 *
 	 * @covers WP_Posts_List_Table::display_rows
+	 * @covers WP_Posts_List_Table::set_hierarchical_display
 	 */
 	function test_list_hierarchical_pages_first_page() {
 		$this->_test_list_hierarchical_page(
@@ -95,6 +96,7 @@ class Tests_Admin_includesListTable extends WP_UnitTestCase {
 	 * @ticket 15459
 	 *
 	 * @covers WP_Posts_List_Table::display_rows
+	 * @covers WP_Posts_List_Table::set_hierarchical_display
 	 */
 	function test_list_hierarchical_pages_second_page() {
 		$this->_test_list_hierarchical_page(
@@ -114,6 +116,7 @@ class Tests_Admin_includesListTable extends WP_UnitTestCase {
 	 * @ticket 15459
 	 *
 	 * @covers WP_Posts_List_Table::display_rows
+	 * @covers WP_Posts_List_Table::set_hierarchical_display
 	 */
 	function test_search_hierarchical_pages_first_page() {
 		$this->_test_list_hierarchical_page(
@@ -133,6 +136,7 @@ class Tests_Admin_includesListTable extends WP_UnitTestCase {
 	 * @ticket 15459
 	 *
 	 * @covers WP_Posts_List_Table::display_rows
+	 * @covers WP_Posts_List_Table::set_hierarchical_display
 	 */
 	function test_search_hierarchical_pages_second_page() {
 		$this->_test_list_hierarchical_page(
@@ -152,6 +156,7 @@ class Tests_Admin_includesListTable extends WP_UnitTestCase {
 	 * @ticket 15459
 	 *
 	 * @covers WP_Posts_List_Table::display_rows
+	 * @covers WP_Posts_List_Table::set_hierarchical_display
 	 */
 	function test_grandchildren_hierarchical_pages_first_page() {
 		// Page 6 is the first page with grandchildren.
@@ -173,6 +178,7 @@ class Tests_Admin_includesListTable extends WP_UnitTestCase {
 	 * @ticket 15459
 	 *
 	 * @covers WP_Posts_List_Table::display_rows
+	 * @covers WP_Posts_List_Table::set_hierarchical_display
 	 */
 	function test_grandchildren_hierarchical_pages_second_page() {
 		// Page 7 is the second page with grandchildren.
@@ -420,7 +426,7 @@ OPTIONS;
 	/**
 	 * @ticket 45089
 	 *
-	 * @covers WP_Posts_List_Table::get_sortable_columns
+	 * @covers WP_Posts_List_Table::print_column_headers
 	 */
 	public function test_sortable_columns() {
 		require_once ABSPATH . 'wp-admin/includes/class-wp-comments-list-table.php';
@@ -456,7 +462,7 @@ OPTIONS;
 	/**
 	 * @ticket 45089
 	 *
-	 * @covers WP_Posts_List_Table::get_sortable_columns
+	 * @covers WP_Posts_List_Table::print_column_headers
 	 */
 	public function test_sortable_columns_with_current_ordering() {
 		require_once ABSPATH . 'wp-admin/includes/class-wp-comments-list-table.php';
