@@ -75,8 +75,9 @@ npm run test:bash
 ```
 
 #### To run the coverage report
+An online version can be found at https://app.codecov.io/gh/WordPress/wordpress-develop
 
-These commands run the PHP coverage reports:
+These commands run to create coverage reports:
 
 ```
 npm run test:php_clover

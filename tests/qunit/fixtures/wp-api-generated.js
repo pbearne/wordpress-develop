@@ -7840,6 +7840,7 @@ mockedApiResponse.postRevisions = [
         "excerpt": {
             "rendered": ""
         },
+        "my_custom_int": "",
         "_links": {
             "parent": [
                 {
@@ -7869,6 +7870,7 @@ mockedApiResponse.postRevisions = [
         "excerpt": {
             "rendered": "<p>REST API Client Fixture: Post</p>\n"
         },
+        "my_custom_int": "",
         "_links": {
             "parent": [
                 {
@@ -7899,7 +7901,8 @@ mockedApiResponse.revision = {
     },
     "excerpt": {
         "rendered": "<p>REST API Client Fixture: Post</p>\n"
-    }
+    },
+    "my_custom_int": ""
 };
 
 mockedApiResponse.postAutosaves = [
@@ -7924,6 +7927,7 @@ mockedApiResponse.postAutosaves = [
         "excerpt": {
             "rendered": ""
         },
+        "my_custom_int": "",
         "_links": {
             "parent": [
                 {
@@ -7954,7 +7958,8 @@ mockedApiResponse.autosave = {
     },
     "excerpt": {
         "rendered": ""
-    }
+    },
+    "my_custom_int": ""
 };
 
 mockedApiResponse.PagesCollection = [
@@ -8768,44 +8773,16 @@ mockedApiResponse.TagModel = {
 
 mockedApiResponse.UsersCollection = [
     {
-        "id": 1,
-        "name": "admin",
-        "url": "http://example.org",
+        "id": 733,
+        "name": "REST API Client Fixture: User",
+        "url": "",
         "description": "",
         "link": "http://example.org/?author=1",
-        "slug": "admin",
+        "slug": "restapiclientfixtureuser",
         "avatar_urls": {
             "24": "http://0.gravatar.com/avatar/96614ec98aa0c0d2ee75796dced6df54?s=24&d=mm&r=g",
             "48": "http://0.gravatar.com/avatar/96614ec98aa0c0d2ee75796dced6df54?s=48&d=mm&r=g",
             "96": "http://0.gravatar.com/avatar/96614ec98aa0c0d2ee75796dced6df54?s=96&d=mm&r=g"
-        },
-        "meta": {
-            "meta_key": "meta_value"
-        },
-        "_links": {
-            "self": [
-                {
-                    "href": "http://example.org/index.php?rest_route=/wp/v2/users/1"
-                }
-            ],
-            "collection": [
-                {
-                    "href": "http://example.org/index.php?rest_route=/wp/v2/users"
-                }
-            ]
-        }
-    },
-    {
-        "id": 2,
-        "name": "REST API Client Fixture: User",
-        "url": "",
-        "description": "",
-        "link": "http://example.org/?author=2",
-        "slug": "restapiclientfixtureuser",
-        "avatar_urls": {
-            "24": "http://2.gravatar.com/avatar/57cbd982c963c7eb2294e2eee1b4448e?s=24&d=mm&r=g",
-            "48": "http://2.gravatar.com/avatar/57cbd982c963c7eb2294e2eee1b4448e?s=48&d=mm&r=g",
-            "96": "http://2.gravatar.com/avatar/57cbd982c963c7eb2294e2eee1b4448e?s=96&d=mm&r=g"
         },
         "meta": {
             "meta_key": ""
@@ -8813,7 +8790,7 @@ mockedApiResponse.UsersCollection = [
         "_links": {
             "self": [
                 {
-                    "href": "http://example.org/index.php?rest_route=/wp/v2/users/2"
+                    "href": "http://example.org/index.php?rest_route=/wp/v2/users/1"
                 }
             ],
             "collection": [
