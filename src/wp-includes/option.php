@@ -458,6 +458,7 @@ function update_option( $option, $value, $autoload = null ) {
 	if ( $value === $old_value || maybe_serialize( $value ) === maybe_serialize( $old_value ) ) {
 		return false;
 	}
+	$autoload = is_autoload_allowed( $value, $autoload );
 
 	/** This filter is documented in wp-includes/option.php */
 	if ( apply_filters( "default_option_{$option}", false, $option, false ) === $old_value ) {
@@ -538,6 +539,33 @@ function update_option( $option, $value, $autoload = null ) {
 	do_action( 'updated_option', $option, $old_value, $value );
 
 	return true;
+}
+
+/**
+ * @param $value
+ * @param $autoload
+ *
+ * @return mixed|string
+ */
+function is_autoload_allowed( $value, $autoload ) {
+	/**
+	 * Filters the maximum size that we allow to set to autoload to yes.
+	 * We do this to help keep the size of the options autoload down.
+	 *
+	 * @since 4.0.0
+	 *
+	 * @param int $size in bytes serialized option value.
+	 */
+	$max_value_size_for_autoload = absint( apply_filters( 'max_option_value_size_for_autoload', 100 ) );
+
+	if ( $max_value_size_for_autoload > 0 ) {
+		$value_size = strlen( maybe_serialize( $value ) );
+		if ( $value_size > $max_value_size_for_autoload ) {
+			$autoload = 'no';
+		}
+	}
+
+	return $autoload;
 }
 
 /**
@@ -622,6 +650,7 @@ function add_option( $option, $value = '', $deprecated = '', $autoload = 'yes' )
 	}
 
 	$serialized_value = maybe_serialize( $value );
+	$autoload         = is_autoload_allowed( $value, $autoload );
 	$autoload         = ( 'no' === $autoload || false === $autoload ) ? 'no' : 'yes';
 
 	/**
