@@ -2304,6 +2304,20 @@ EOF;
 		wp_filter_content_tags( $img_tag_1 );
 		$this->assertSame( 1, $filter->get_call_count() );
 	}
+
+	public function test_wp_filter_content_tag_test() {
+		$content = '<p>Image, standard. Should have srcset and sizes.</p>
+			<img src="http://url.tld" alt="" />';
+		add_filter(
+			'wp_content_img_tag',
+			static function( $filtered_image ) {
+				return "<tag>$filtered_image</tag>";
+			}
+		);
+		$this->assertSame( '<p>Image, standard. Should have srcset and sizes.</p>
+			<tag><img src="http://url.tld" alt="" /></tag>', wp_filter_content_tags( $content ) );
+	}
+
 	/**
 	 * @ticket 33641
 	 * @ticket 34528
