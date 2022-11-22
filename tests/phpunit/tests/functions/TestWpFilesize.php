@@ -6,7 +6,6 @@
  *
  * @covers ::wp_filesize
  */
-
 class Tests_for_wp_filesize extends WP_UnitTestCase {
 
 	public function test_pre_wp_filesize_filter() {
