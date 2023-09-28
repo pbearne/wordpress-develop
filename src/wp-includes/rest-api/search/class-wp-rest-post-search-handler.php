@@ -69,6 +69,14 @@ class WP_REST_Post_Search_Handler extends WP_REST_Search_Handler {
 			$query_args['s'] = $request['search'];
 		}
 
+		if ( ! empty( $request['exclude'] ) ) {
+			$query_args['post__not_in'] = $request['exclude'];
+		}
+
+		if ( ! empty( $request['include'] ) ) {
+			$query_args['post__in'] = $request['include'];
+		}
+
 		/**
 		 * Filters the query arguments for a REST API search request.
 		 *
@@ -194,5 +202,4 @@ class WP_REST_Post_Search_Handler extends WP_REST_Search_Handler {
 
 		return rest_get_route_for_post( $post );
 	}
-
 }

@@ -11,6 +11,7 @@
  *
  * @since 3.5.0
  */
+#[AllowDynamicProperties]
 abstract class WP_Image_Editor {
 	protected $file              = null;
 	protected $size              = null;
@@ -103,9 +104,16 @@ abstract class WP_Image_Editor {
 	 * @since 3.5.0
 	 * @abstract
 	 *
-	 * @param int|null $max_w Image width.
-	 * @param int|null $max_h Image height.
-	 * @param bool     $crop
+	 * @param int|null   $max_w Image width.
+	 * @param int|null   $max_h Image height.
+	 * @param bool|array $crop  {
+	 *     Optional. Image cropping behavior. If false, the image will be scaled (default).
+	 *     If true, image will be cropped to the specified dimensions using center positions.
+	 *     If an array, the image will be cropped using the array to specify the crop location:
+	 *
+	 *     @type string $0 The x crop position. Accepts 'left' 'center', or 'right'.
+	 *     @type string $1 The y crop position. Accepts 'top', 'center', or 'bottom'.
+	 * }
 	 * @return true|WP_Error
 	 */
 	abstract public function resize( $max_w, $max_h, $crop = false );
@@ -120,9 +128,9 @@ abstract class WP_Image_Editor {
 	 *     An array of image size arrays. Default sizes are 'small', 'medium', 'large'.
 	 *
 	 *     @type array ...$0 {
-	 *         @type int  $width  Image width.
-	 *         @type int  $height Image height.
-	 *         @type bool $crop   Optional. Whether to crop the image. Default false.
+	 *         @type int        $width  Image width.
+	 *         @type int        $height Image height.
+	 *         @type bool|array $crop   Optional. Whether to crop the image. Default false.
 	 *     }
 	 * }
 	 * @return array An array of resized images metadata by size.
@@ -334,11 +342,6 @@ abstract class WP_Image_Editor {
 	protected function get_output_format( $filename = null, $mime_type = null ) {
 		$new_ext = null;
 
-		// If no mime type is passed but output mime type is set, use that.
-		if ( ! $mime_type && ! empty( $this->output_mime_type ) ) {
-			$mime_type = $this->output_mime_type;
-		}
-
 		// By default, assume specified type takes priority.
 		if ( $mime_type ) {
 			$new_ext = $this->get_extension( $mime_type );
@@ -353,9 +356,11 @@ abstract class WP_Image_Editor {
 			$file_mime = $this->mime_type;
 		}
 
-		// Check to see if specified mime-type is the same as type implied by
-		// file extension. If so, prefer extension from file.
-		if ( ! $mime_type || ( $file_mime == $mime_type ) ) {
+		/*
+		 * Check to see if specified mime-type is the same as type implied by
+		 * file extension. If so, prefer extension from file.
+		 */
+		if ( ! $mime_type || ( $file_mime === $mime_type ) ) {
 			$mime_type = $file_mime;
 			$new_ext   = $file_ext;
 		}
@@ -388,8 +393,10 @@ abstract class WP_Image_Editor {
 			$new_ext   = $this->get_extension( $mime_type );
 		}
 
-		// Double-check that the mime-type selected is supported by the editor.
-		// If not, choose a default instead.
+		/*
+		 * Double-check that the mime-type selected is supported by the editor.
+		 * If not, choose a default instead.
+		 */
 		if ( ! $this->supports_mime_type( $mime_type ) ) {
 			/**
 			 * Filters default mime type prior to getting the file extension.
@@ -404,9 +411,11 @@ abstract class WP_Image_Editor {
 			$new_ext   = $this->get_extension( $mime_type );
 		}
 
-		// Ensure both $filename and $new_ext are not empty.
-		// $this->get_extension() returns false on error which would effectively remove the extension
-		// from $filename. That shouldn't happen, files without extensions are not supported.
+		/*
+		 * Ensure both $filename and $new_ext are not empty.
+		 * $this->get_extension() returns false on error which would effectively remove the extension
+		 * from $filename. That shouldn't happen, files without extensions are not supported.
+		 */
 		if ( $filename && $new_ext ) {
 			$dir = pathinfo( $filename, PATHINFO_DIRNAME );
 			$ext = pathinfo( $filename, PATHINFO_EXTENSION );
@@ -418,8 +427,8 @@ abstract class WP_Image_Editor {
 			// The image will be converted when saving. Set the quality for the new mime-type if not already set.
 			if ( $mime_type !== $this->output_mime_type ) {
 				$this->output_mime_type = $mime_type;
-				$this->set_quality();
 			}
+			$this->set_quality();
 		} elseif ( ! empty( $this->output_mime_type ) ) {
 			// Reset output_mime_type and quality.
 			$this->output_mime_type = null;
@@ -430,25 +439,18 @@ abstract class WP_Image_Editor {
 	}
 
 	/**
-	 * Builds an output filename based on current file, and adding proper suffix.
+	 * Builds an output filename based on current file, and adding proper suffix
 	 *
 	 * @since 3.5.0
-	 * @since 6.1.0 Skips adding a suffix when set to an empty string. When the
-	 *              file extension being generated doesn't match the image file extension,
-	 *              add the extension to the suffix
 	 *
-	 * @param string $suffix    Optional. Suffix to add to the filename. The default null
-	 *                          will result in a 'widthxheight' suffix. Passing
-	 *                          an empty string will result in no suffix.
-	 * @param string $dest_path Optional. The path to save the file to. The default null
-	 *                          will use the image file path.
-	 * @param string $extension Optional. The file extension to use. The default null
-	 *                          will use the image file extension.
-	 * @return string filename The generated file name.
+	 * @param string $suffix
+	 * @param string $dest_path
+	 * @param string $extension
+	 * @return string filename
 	 */
 	public function generate_filename( $suffix = null, $dest_path = null, $extension = null ) {
 		// $suffix will be appended to the destination filename, just before the extension.
-		if ( null === $suffix ) {
+		if ( ! $suffix ) {
 			$suffix = $this->get_suffix();
 		}
 
@@ -469,21 +471,7 @@ abstract class WP_Image_Editor {
 			}
 		}
 
-		if ( empty( $suffix ) ) {
-			$suffix = '';
-		} else {
-			$suffix = "-{$suffix}";
-		}
-
-		// When the file extension being generated doesn't match the image file extension,
-		// add the extension to the suffix to ensure a unique file name. Prevents
-		// name conflicts when a single image type can have multiple extensions,
-		// eg. .jpg, .jpeg and .jpe are all valid JPEG extensions.
-		if ( ! empty( $extension ) && $extension !== $ext ) {
-			$suffix .= "-{$ext}";
-		}
-
-		return trailingslashit( $dir ) . "{$name}{$suffix}.{$new_ext}";
+		return trailingslashit( $dir ) . "{$name}-{$suffix}.{$new_ext}";
 	}
 
 	/**
@@ -537,23 +525,25 @@ abstract class WP_Image_Editor {
 		switch ( $orientation ) {
 			case 2:
 				// Flip horizontally.
-				$result = $this->flip( true, false );
+				$result = $this->flip( false, true );
 				break;
 			case 3:
-				// Rotate 180 degrees or flip horizontally and vertically.
-				// Flipping seems faster and uses less resources.
+				/*
+				 * Rotate 180 degrees or flip horizontally and vertically.
+				 * Flipping seems faster and uses less resources.
+				 */
 				$result = $this->flip( true, true );
 				break;
 			case 4:
 				// Flip vertically.
-				$result = $this->flip( false, true );
+				$result = $this->flip( true, false );
 				break;
 			case 5:
 				// Rotate 90 degrees counter-clockwise and flip vertically.
 				$result = $this->rotate( 90 );
 
 				if ( ! is_wp_error( $result ) ) {
-					$result = $this->flip( false, true );
+					$result = $this->flip( true, false );
 				}
 
 				break;
@@ -566,7 +556,7 @@ abstract class WP_Image_Editor {
 				$result = $this->rotate( 90 );
 
 				if ( ! is_wp_error( $result ) ) {
-					$result = $this->flip( true, false );
+					$result = $this->flip( false, true );
 				}
 
 				break;
@@ -662,29 +652,5 @@ abstract class WP_Image_Editor {
 		}
 
 		return wp_get_default_extension_for_mime_type( $mime_type );
-	}
-
-	/**
-	 * Set the editor output mime type, useful when outputting alternate mime types.
-	 *
-	 * Track that the mime type is set with the mime type set flag.
-	 *
-	 * @since 6.1.0
-	 *
-	 * @param string $output_mime_type The mime type to set.
-	 */
-	public function set_output_mime_type( $output_mime_type ) {
-		$this->output_mime_type = $output_mime_type;
-	}
-
-	/**
-	 * Reset the mime type to the original file mime type.
-	 *
-	 * Reset the mime type set flag.
-	 *
-	 * @since 6.1.0
-	 */
-	public function reset_output_mime_type() {
-		$this->output_mime_type = $this->mime_type;
 	}
 }
