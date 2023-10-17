@@ -132,23 +132,25 @@ class CacheOptionPerPage {
 			$db_ids = $wpdb->get_results( "select option_id from $wpdb->options where option_name IN  ( $key_string ) order by option_id", ARRAY_A );
 			$ids    = implode( ',', wp_list_pluck( $db_ids, 'option_id' ) );
 
-//			var_dump( $ids );
+
 			//          check that this is not the same as a lower URL path value.
 			foreach ( array_reverse( self::performance_conditional_options_get_context() ) as $key ) {
-				$test = $wpdb->get_results( $wpdb->prepare( "select option_value from $wpdb->options where option_name = '%s'", $key ), ARRAY_A );
-//				var_dump( $key );
-				//              var_dump( $test_ids );
-				if ( ! empty( $test ) && $ids === $test[0]['option_value'] ) {
-					self::$current_context = $key;
-					break;
+				$test[$key] = $wpdb->get_results( $wpdb->prepare( "select option_value from $wpdb->options where option_name = '%s'", $key ), ARRAY_A );
+
+				if ( ! empty( $test[$key] ) && $ids === $test[$key][0]['option_value'] ) {
+//					self::$current_context = $key;
+//					break;
+					return;
 				}
+
+				self::$current_context = $key;
 			}
 
 			if ( self::performance_conditional_has_persistent_caching() ) {
 				wp_cache_add( self::$current_context, $ids, 'wp_conditional_options', DAY_IN_SECONDS );
 				delete_option( self::$current_context );
 			} else {
-				$wpdb->replace(
+				$saved = $wpdb->replace(
 					$wpdb->options,
 					array(
 						'option_name'  => self::$current_context,
@@ -158,6 +160,8 @@ class CacheOptionPerPage {
 					array( '%s', '%s', '%s' )
 				);
 			}
+
+			// used to test for persistent cache
 			wp_cache_add( 'persistent_test', 'cache_active', 'wp_conditional_options', DAY_IN_SECONDS );
 		}
 	}
@@ -211,15 +215,16 @@ class CacheOptionPerPage {
 		$logined = 'false';
 		foreach ( $_COOKIE as $key => $val ) {
 			if ( false !== strpos( $key, 'wordpress_logged_in_' ) ) {
-				$logined = $val;
+				$logined = 'user'; //$val; // this have to just true not the user ID
 				break;
 			}
 		}
-		$path = parse_url( $_SERVER['REQUEST_URI'], PHP_URL_PATH );
+		$path = 'root' . parse_url( $_SERVER['REQUEST_URI'], PHP_URL_PATH );
 
-		foreach ( explode( trim( 'root' . $path, '/' ), '/' ) as $path_fragment ) {
+		foreach ( explode( '/', trim( $path, '/' )  ) as $path_fragment ) {
 
-			self::$conditional_options_context[] = 'opc_' . md5( $path_fragment . $logined );
+//			self::$conditional_options_context[] = 'opc_' . md5( $path_fragment . $logined );
+			self::$conditional_options_context[] = 'opc_' . $path_fragment . '_' .  $logined;
 		}
 		// reverse the array
 		self::$conditional_options_context = array_reverse( self::$conditional_options_context );
