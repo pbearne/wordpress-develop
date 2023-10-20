@@ -25,7 +25,7 @@ class CacheOptionPerPage {
 		add_filter( 'pre_option', array( __CLASS__, 'performance_conditional_options_get_option' ), 1, 2 );
 		add_action( 'shutdown', array( __CLASS__, 'performance_conditional_options_save_options_cache' ) );
 		if ( ! isset( $_REQUEST['hide_stats'] ) ) {
-			add_action( 'shutdown', array( __CLASS__, 'performance_conditional_options_stats' ), 99 );
+		//	add_action( 'shutdown', array( __CLASS__, 'performance_conditional_options_stats' ), 99 );
 		}
 	}
 
