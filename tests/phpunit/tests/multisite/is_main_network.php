@@ -5,69 +5,63 @@ if ( is_multisite() ) :
 	 *
 	 * @group Functions
 	 * @group ms-site
-	 * @group multisite
 	 *
 	 * @covers ::is_main_network
 	 */
 	class Tests_MultiSite_is_main_network extends WP_UnitTestCase {
 
-		protected static $network_ids;
-		protected static $site_ids;
+		protected static $different_network_id;
+		protected static $different_site_ids = array();
+
+		public function tear_down() {
+			global $current_site;
+			$current_site->id = 1;
+			parent::tear_down();
+		}
 
 		public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
-			self::$network_ids = array(
-				'make.wordpress.org/' => array(
-					'domain' => 'make.wordpress.org',
+			self::$different_network_id = $factory->network->create(
+				array(
+					'domain' => 'wordpress.org',
 					'path'   => '/',
+				)
+			);
+
+			$sites = array(
+				array(
+					'domain'     => 'wordpress.org',
+					'path'       => '/',
+					'network_id' => self::$different_network_id,
 				),
-				'site_2/'             => array(
-					'domain' => '2.wordpress.org',
-					'path'   => '/',
+				array(
+					'domain'     => 'wordpress.org',
+					'path'       => '/foo/',
+					'network_id' => self::$different_network_id,
+				),
+				array(
+					'domain'     => 'wordpress.org',
+					'path'       => '/bar/',
+					'network_id' => self::$different_network_id,
 				),
 			);
 
-			foreach ( self::$network_ids as &$id ) {
-				$id = $factory->network->create( $id );
-
-//				self::$site_ids = array(
-//					'make.wordpress.org/' . $id     => array(
-//						'domain'     => 'make.wordpress.org',
-//						'path'       => '/',
-//						'network_id' => self::$network_ids[ $id ],
-//					),
-//					'make.wordpress.org/foo/' . $id => array(
-//						'domain'     => 'make.wordpress.org',
-//						'path'       => '/foo/',
-//						'network_id' => self::$network_ids[ $id ],
-//					),
-//				);
-//
-//				foreach ( self::$site_ids as &$Site_id ) {
-//					$id = $factory->blog->create( $Site_id );
-//				}
-//				unset( $Site_id );
+			foreach ( $sites as $site ) {
+				self::$different_site_ids[] = $factory->blog->create( $site );
 			}
-			unset( $id );
-
-			var_dump( self::$network_ids );
-			var_dump( self::$site_ids );
 		}
 
 		public static function wpTearDownAfterClass() {
 			global $wpdb;
 
-			foreach ( self::$site_ids as $id ) {
+			foreach ( self::$different_site_ids as $id ) {
 				wp_delete_site( $id );
 			}
 
-			foreach ( self::$network_ids as $id ) {
-				$wpdb->query( $wpdb->prepare( "DELETE FROM {$wpdb->sitemeta} WHERE site_id = %d", $id ) );
-				$wpdb->query( $wpdb->prepare( "DELETE FROM {$wpdb->site} WHERE id= %d", $id ) );
-			}
+			$wpdb->query( $wpdb->prepare( "DELETE FROM {$wpdb->sitemeta} WHERE site_id = %d", self::$different_network_id ) );
+			$wpdb->query( $wpdb->prepare( "DELETE FROM {$wpdb->site} WHERE id= %d", self::$different_network_id ) );
 
 			wp_update_network_site_counts();
 		}
-
 
 		/**
 		 * @ticket 59981
@@ -88,7 +82,8 @@ if ( is_multisite() ) :
 		 *
 		 */
 		public function test_is_main_network_ms_site() {
-			$this->assertTrue( is_main_network( self::$site_ids[0] ) );
+
+			$this->assertFalse( is_main_network( self::$different_site_ids[0] ) );
 		}
 
 		/**
@@ -98,8 +93,10 @@ if ( is_multisite() ) :
 		 * @group multisite
 		 */
 		public function test_is_not_main_network_when_multi() {
-			switch_to_site( $site_ids[3] );
-			$this->assertFalse( is_main_network( self::$site_ids[3] ) );
+			switch_to_blog( self::$different_site_ids[2] );
+
+			$this->assertTrue( is_main_network() );
+			$this->assertFalse( is_main_network( self::$different_site_ids[2] ) );
 		}
 	}
 endif;
