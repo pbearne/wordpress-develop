@@ -113,7 +113,12 @@ if ( empty( $doing_wp_cron ) ) {
 if ( $doing_cron_transient !== $doing_wp_cron ) {
 	return;
 }
+/*
+ * Store cron job to be executed.
+ */
+$cron_jobs = [];
 
+// Schedule and reschedule cron jobs.
 foreach ( $crons as $timestamp => $cronhooks ) {
 	if ( $timestamp > $gmt_time ) {
 		break;
@@ -179,16 +184,13 @@ foreach ( $crons as $timestamp => $cronhooks ) {
 				do_action( 'cron_unschedule_event_error', $result, $hook, $v );
 			}
 
-			/**
-			 * Fires scheduled events.
-			 *
-			 * @ignore
-			 * @since 2.1.0
-			 *
-			 * @param string $hook Name of the hook that was scheduled to be fired.
-			 * @param array  $args The arguments to be passed to the hook.
-			 */
-			do_action_ref_array( $hook, $v['args'] );
+			// Register jobs to be executed.
+			$cron_jobs[] = array(
+				'timestamp' => $timestamp,
+				'hook'      => $hook,
+				'args'      => isset( $v['args'] ) ? (array) $v['args'] : array(),
+				'schedule'  => $schedule,
+			);
 
 			// If the hook ran too long and another cron process stole the lock, quit.
 			if ( _get_cron_lock() !== $doing_wp_cron ) {
@@ -200,6 +202,39 @@ foreach ( $crons as $timestamp => $cronhooks ) {
 
 if ( _get_cron_lock() === $doing_wp_cron ) {
 	delete_transient( 'doing_cron' );
+}
+
+// Let's do the cron jobs.
+foreach ( $cron_jobs as $job ) {
+	/**
+	 * Get cron executor.
+	 *
+	 * By default, `do_action_ref_array` will called.
+	 *
+	 * @since 5.6.0
+	 *
+	 * @param array $jobs Cron task to be executed.
+	 */
+	$callback = apply_filters( 'wp_cron_job_callback', 'do_action_ref_array', $job );
+	try {
+		do_action( 'wp_cron_before_execution', $job );
+		/**
+		 * Fires scheduled events by callback.
+		 *
+		 * By default, `do_action_ref_array` will called.
+		 *
+		 * @since 2.1.0
+		 * @since 5.6.0 This hook runs by default, but can be overridden.
+		 *
+		 * @param string $hook Name of the hook that was scheduled to be fired.
+		 * @param array $args The arguments to be passed to the hook.
+		 * @ignore
+		 */
+		call_user_func_array( $callback, array( $job['hook'], $job['args'] ) );
+		do_action( 'wp_cron_after_execution', $job );
+	} catch ( Exception $e ) {
+		do_action( 'wp_cron_execution_error', $e );
+	}
 }
 
 die();
